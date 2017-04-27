@@ -33,57 +33,61 @@ actually nothing special, what I was making is create one more agent layer to de
 
 ## Usages
 
-`npm i gopush -g`
+1. `npm i gopush -g`
 
-use `gopush-create` to create your own config and hooks
+2. `mkdir project-name` 
 
-**config:**
+3. `cd project-name`
+ 
+4. `gopush-create` to create your own config and hooks
 
-include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
+5. **config:**
 
-* local.json : mac or windows
-* production : process.env.NODE_ENV === 'production'
-* develop : neither above
+    include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
 
-**hook:**
+    * local.json : mac or windows
+    * production : process.env.NODE_ENV === 'production'
+    * develop : neither above
 
-include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
+6. **hook:**
 
-* agent-middleware.js
-
-```javascript
-module.exports = function(app){
-	app.use(function(req, res, next){
-        res.locals.uid = req.cookies.uid; // define res.locals.uid is necessary or response 430 error
-        next();
-    });
-}
-```
+    include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
 
 * agent-middleware.js
 
-```javascript
-var parseCookies = require('gopush/tools/parseCookies');
-module.exports = function(req){
-    // return Promise object and resolve uid
-	return new Promise((resolve, reject) => {
-        var cookies = parseCookies(req);
-        resolve(cookies.uid);
-    });
-}
-```
+    ```javascript
+    module.exports = function(app){
+        app.use(function(req, res, next){
+            res.locals.uid = req.cookies.uid; // define res.locals.uid is necessary or response 430 error
+            next();
+        });
+    }
+    ```
 
-* admin-middleware.js
+    * agent-middleware.js
 
-```javascript
-module.exports = function(app){
-    app.use((req, res, next) => {
-        // do something to verify the user
-        next();
-    })
-}
-```
+    ```javascript
+    var parseCookies = require('gopush/tools/parseCookies');
+    module.exports = function(req){
+        // return Promise object and resolve uid
+        return new Promise((resolve, reject) => {
+            var cookies = parseCookies(req);
+            resolve(cookies.uid);
+        });
+    }
+    ```
 
-after finishing config then run `gopush`
+    * admin-middleware.js
 
-visit `http://localhost:6003`
+    ```javascript
+    module.exports = function(app){
+        app.use((req, res, next) => {
+            // do something to verify the user
+            next();
+        })
+    }
+    ```
+
+7. after finishing config then run `gopush`
+
+8. visit `http://localhost:6003`
