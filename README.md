@@ -5,7 +5,7 @@ and these network enviroment are all behind a layer of ngnix.
 ## What is the problem ?
 when using socket.io with cluster mode, you will meet the sticky sesson issue.
 
-![without_agent](https://github.com/hcnode/gopush/raw/master/chart/issue_with_cluster_socket.io.png)
+![without_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/issue_with_cluster_socket.io.png)
 
 ## Some of solutions
 * one of the solution of session persistence is using [upstream block to support load balance and session sticky](https://www.nginx.com/blog/nginx-nodejs-websockets-socketio/)
@@ -29,7 +29,7 @@ drawbacks: first of all the requests only can go to is master worker, and you ma
 ## How this project of solution work ?
 actually nothing special, what I make is create one more agent layer to deal the request include http and websocket come from client, it is kind of like sticky-session lib, but I use standalone instance to serve as the agents instead of use master worker, in addition, agent can easy to scale more instances, and I also use the http and websocket client mode to connect the backend server instead of send message between master and slave workers.
 
-![with_agent](https://github.com/hcnode/gopush/raw/master/chart/modules.png)
+![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
 
 ## Usages
 
