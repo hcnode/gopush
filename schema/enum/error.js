@@ -1,0 +1,5 @@
+module.exports = {
+    USER_OR_MESSAGE_NOT_FOUND : 450,
+    GET_MESSAGES_AGGREGATE_ERROR : 451,
+    PUBLISH_ERROR : 452
+}

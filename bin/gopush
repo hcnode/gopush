@@ -1,0 +1,5 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pm2_script="pm2 start $DIR/../pm2_server.config.js"
+$pm2_script

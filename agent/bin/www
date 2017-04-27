@@ -1,0 +1,154 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+var app = require('../app');
+var debug = require('debug')('agent2:server');
+var http = require('http');
+var request = require('request');
+var config = require('../../tools/getConfig')();
+var fs = require('fs');
+var net = require('net');
+var url = require('url');
+var util = require('util');
+var fayeWebsocket = require('faye-websocket');
+var environment = require('../../tools/getEnvironment');
+var getHash = require('../../tools/getHash');
+var parseCookies = require('../../tools/parseCookies');
+var upgrade = require('upgrade');
+/**
+ * Get port from environment and store in Express.
+ */
+var port = normalizePort(process.env.PORT || config.agentPort);
+app.set('port', port);
+
+var server = http.createServer(app);
+console.log(process.cwd())
+if(fs.existsSync(`${process.cwd()}/hook/agent-middleware${environment == 'local' ? '' : '_production'}.js`)){
+	// do something to verify to get uid
+	require(`${process.cwd()}/hook/agent-middleware${environment == 'local' ? '' : '_production'}`)(app);
+}else{
+	app.use((req, res, next) => res.send('you need a hook/agent-middleware.js to save user to res.locals.uid'))
+}
+app.use(function (req, res, next) {
+	var port = getPort(res.locals.uid);
+	var server = getServerIp(res.locals.uid);
+	res.cookie("agent-info", port);
+	console.log(`${req.protocol}:${server}:${port}:${req.originalUrl}:${req.get('x-forwarded-for')}:${req.get('Upgrade')}:${req.get('Connection')}`)
+	var url = `http://${server}:${port}${req.originalUrl}`;
+	if(url.indexOf('?') > -1){
+		url += `&uid=${res.locals.uid}`;
+	}else{
+		url += `?uid=${res.locals.uid}`;
+	}
+	req.pipe(request(url)).pipe(res);
+});
+function sendSocketError(req, socket, body){
+	var send = upgrade.getSend(socket);
+    upgrade.writeHead(req, socket);
+    send('403 error');
+} 
+server.on('upgrade', function (req, socket, body) {
+	Promise.resolve().then(() => {
+		if(fs.existsSync(`${process.cwd()}/hook/onupgrade-middleware${environment == 'local' ? '' : '_production'}.js`)){
+			return require(`${process.cwd()}/hook/onupgrade-middleware${environment == 'local' ? '' : '_production'}`)(req);
+		}else{
+			throw 'err';
+		}
+	}).then(uid => {
+		var port = getPort(uid);
+		var server = getServerIp(uid);
+		var frontend = new fayeWebsocket(req, socket, body),
+			backend = new fayeWebsocket.Client(`ws://${server}:${port}${req.url}`);
+		// console.log(req.url)
+		frontend.on('error', function (event) {
+			console.log(`frontend:error:ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
+		});
+		backend.on('error', function (event) {
+			console.log(`backend:error:ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
+		});
+		console.log(`ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
+		frontend.pipe(backend).pipe(frontend);
+	}).catch(err => {
+		sendSocketError(req, socket, body);
+	})
+	
+});
+
+function getPort(uid) {
+	var port = getHash(uid) % config.serverWorkers;
+	port += config.serverPortStart;
+	return port;
+}
+function getServerIp(uid) {
+	var index = getHash(uid) % config.serverIps.length;
+	return config.serverIps[index];
+}
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+	var port = parseInt(val, 10);
+
+	if (isNaN(port)) {
+		// named pipe
+		return val;
+	}
+
+	if (port >= 0) {
+		// port number
+		return port;
+	}
+
+	return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+	if (error.syscall !== 'listen') {
+		throw error;
+	}
+
+	var bind = typeof port === 'string' ?
+		'Pipe ' + port :
+		'Port ' + port;
+
+	// handle specific listen errors with friendly messages
+	switch (error.code) {
+		case 'EACCES':
+			console.error(bind + ' requires elevated privileges');
+			process.exit(1);
+			break;
+		case 'EADDRINUSE':
+			console.error(bind + ' is already in use');
+			process.exit(1);
+			break;
+		default:
+			throw error;
+	}
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+	var addr = server.address();
+	var bind = typeof addr === 'string' ?
+		'pipe ' + addr :
+		'port ' + addr.port;
+	debug('Listening on ' + bind);
+}
