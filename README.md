@@ -33,7 +33,7 @@ actually nothing special, what I was making is create one more agent layer to de
 
 ## Usages
 
-1. `npm i gopush -g`
+1. `npm i gopush -g` 
 
 2. `mkdir project-name` 
 
