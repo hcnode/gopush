@@ -5,7 +5,7 @@ and these network enviroment are all behind a layer of ngnix.
 ## What is the problem ?
 when using socket.io with cluster mode, you will meet the sticky sesson issue.
 
-![without_agent](https://github.com/hcnode/socket.io-pm2-cluster-redis-sitcky-session-nginx/raw/master/chart/flow_without_agent.png)
+![without_agent](https://github.com/hcnode/gopush/raw/master/chart/issue_with_cluster_socket.io.png)
 
 ## Some of solutions
 * one of the solution of session persistence is using [upstream block to support load balance and session sticky](https://www.nginx.com/blog/nginx-nodejs-websockets-socketio/)
@@ -26,11 +26,60 @@ how this lib work is first launch the master worker as an agent and fork a numbe
 
 drawbacks: first of all the requests only can go to is master worker, and you may probably can not scale it(I am not sure, it is?), and you may not deploy this application by pm2 with cluster mode as well.
 
-## how this project of solution work ?
+## How this project of solution work ?
 actually nothing special, what I make is create one more agent layer to deal the request include http and websocket come from client, it is kind of like sticky-session lib, but I use standalone instance to serve as the agents instead of use master worker, in addition, agent can easy to scale more instances, and I also use the http and websocket client mode to connect the backend server instead of send message between master and slave workers.
 
-![with_agent](https://github.com/hcnode/socket.io-pm2-cluster-redis-sitcky-session-nginx/raw/master/chart/flow_with_agent.png)
+![with_agent](https://github.com/hcnode/gopush/raw/master/chart/modules.png)
 
+## Usages
 
-## usages
+`npm i gopush -g`
 
+use `gopush-create` to create your own config and hooks
+*config:*
+include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
+local.json : mac or windows
+production : process.env.NODE_ENV === 'production'
+develop : neither above
+
+*hook:*
+include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
+
+* agent-middleware.js
+
+```javascript
+module.exports = function(app){
+	app.use(function(req, res, next){
+        res.locals.uid = req.cookies.uid; // define res.locals.uid is necessary or response 430 error
+        next();
+    });
+}
+```
+
+* agent-middleware.js
+
+```javascript
+var parseCookies = require('gopush/tools/parseCookies');
+module.exports = function(req){
+    // return Promise object and resolve uid
+	return new Promise((resolve, reject) => {
+        var cookies = parseCookies(req);
+        resolve(cookies.uid);
+    });
+}
+```
+
+* admin-middleware.js
+
+```javascript
+module.exports = function(app){
+    app.use((req, res, next) => {
+        // do something to verify the user
+        next();
+    })
+}
+```
+
+after finishing config then run `gopush`
+
+visit `http://localhost:6003`
