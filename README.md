@@ -36,13 +36,16 @@ actually nothing special, what I make is create one more agent layer to deal the
 `npm i gopush -g`
 
 use `gopush-create` to create your own config and hooks
-*config:*
+
+**config:**
+
 include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
 local.json : mac or windows
 production : process.env.NODE_ENV === 'production'
 develop : neither above
 
-*hook:*
+**hook:**
+
 include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
 
 * agent-middleware.js
