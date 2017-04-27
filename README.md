@@ -27,7 +27,7 @@ how this lib work is first launch the master worker as an agent and fork a numbe
 drawbacks: first of all the requests only can go to is master worker, and you may probably can not scale it(I am not sure, it is?), and you may not deploy this application by pm2 with cluster mode as well.
 
 ## How this project of solution work ?
-actually nothing special, what I make is create one more agent layer to deal the request include http and websocket come from client, it is kind of like sticky-session lib, but I use standalone instance to serve as the agents instead of use master worker, in addition, agent can easy to scale more instances, and I also use the http and websocket client mode to connect the backend server instead of send message between master and slave workers.
+actually nothing special, what I was making is create one more agent layer to deal the request include http and websocket come from client, it is kind of like sticky-session lib, but I use standalone instance to serve as the agents instead of use master worker, in addition, agent can easy to scale more instances, and I also use the http and websocket client mode to connect the backend server instead of send message between master and slave workers.
 
 ![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
 
