@@ -53,7 +53,7 @@ actually nothing special, what I was making is create one more agent layer to de
 
     include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
 
-* agent-middleware.js
+    * agent-middleware.js
 
     ```javascript
     module.exports = function(app){
