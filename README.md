@@ -40,9 +40,10 @@ use `gopush-create` to create your own config and hooks
 **config:**
 
 include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
-local.json : mac or windows
-production : process.env.NODE_ENV === 'production'
-develop : neither above
+
+* local.json : mac or windows
+* production : process.env.NODE_ENV === 'production'
+* develop : neither above
 
 **hook:**
 
