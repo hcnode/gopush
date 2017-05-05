@@ -9,7 +9,7 @@ module.exports = function (service) {
 				service.subscribe(msg.uid, msg.messageId)
 					.then(callback.bind(null, null), callback);
 			}else{
-				service.customSubscribe(msg.uid, msg.message)
+				service.customSubscribe(msg.uid, msg.message, msg.sendOnlineOnly)
 					.then(callback.bind(null, null), callback);
 			}
 		});

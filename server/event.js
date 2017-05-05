@@ -26,13 +26,14 @@ module.exports = function(io, service){
         socket.on('room', function(data) {
             var room = data.room;
             var event = data.event;
+            var noBroadcast = data.noBroadcast;
             if(room){
                 var fixRoomName = 'room:' + room;
                 if(socket.room && socket.room != room)
                     socket.leave(socket.room);
                 socket.room = fixRoomName;
                 socket.join(fixRoomName);
-                if(event){
+                if(event && !noBroadcast){
                     socket.to(fixRoomName).emit(data.event, data);
                 }
             }

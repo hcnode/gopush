@@ -51,6 +51,7 @@ module.exports = function (app, router, mongoose) {
 	router.post('/message/customSub', (req, res) => {
 		var userList = (req.body.uids || '').split('\n');
 		var content = req.body.content;
+		var sendOnlineOnly = req.body.sendOnlineOnly;
 		var message;
 		try{
 			message = JSON.parse(content)
@@ -61,7 +62,8 @@ module.exports = function (app, router, mongoose) {
 			var ipAndPort = getHostAndPortByHash(uid);
 			return promise.then(result => {
 				return new Promise((resolve, reject) => {
-                    seneca.client({port : ipAndPort.senecaPort, host : ipAndPort.host}).act({cmd:'subscribe', message : message, uid : [uid]}, (err) => {
+                    seneca.client({port : ipAndPort.senecaPort, host : ipAndPort.host})
+						.act({cmd:'subscribe', message : message, uid : [uid], sendOnlineOnly : sendOnlineOnly}, (err) => {
                         if(err){
                             reject (err);
                         }else{

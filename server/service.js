@@ -51,19 +51,23 @@ module.exports = function (io) {
         /**
          * subscribe message to send
          */
-        customSubscribe: function (uids, msg) {
+        customSubscribe: function (uids, msg, sendOnlineOnly) {
             var promise, offlineUsers, onlineUsers;
             promise = Promise.resolve();
             var uidMsgMap = {};
             return promise.then(() => {
                 return this.findOnlineUsers(uids)
             }).then(users => {
-                // save to user collection
-                return uids.reduce((promise, uid) => {
-                    return promise.then(result => {
-                        return this.saveMessage(uid, msg).then(id => uidMsgMap[uid] = id);
-                    });
-                }, Promise.resolve()).then(result => users)
+                if(sendOnlineOnly){
+                    return users;
+                }else{
+                    // save to user collection
+                    return uids.reduce((promise, uid) => {
+                        return promise.then(result => {
+                            return this.saveMessage(uid, msg).then(id => uidMsgMap[uid] = id);
+                        });
+                    }, Promise.resolve()).then(result => users);
+                }
             }).then(users => {
                 onlineUsers = users;
                 offlineUsers = uids.filter(uid => {
@@ -247,7 +251,8 @@ module.exports = function (io) {
         checkOnline : function(socketId){
             var connectedSockets = io.of('/').connected;
             if(!connectedSockets[socketId]){
-                return Client.update({socketId : socketId}, {online : false})
+                console.log(`${socketId} not found`);
+                return Client.update({socketId : socketId}, {online : false});
             }else{
                 return Promise.resolve();
             }

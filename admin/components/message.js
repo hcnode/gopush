@@ -25,11 +25,13 @@ const Message = commonTable({
 				showDialog(that, <div>
 						event：<br/><input type="text" ref={input => eventInput = input} /><br/><br/>
 						用户uid列表(每行一个帐号)：<br/><textarea cols="60" rows="10" ref={input => usersInput = input}></textarea><br/><br/>
-						消息内容(json格式)：<br/><textarea cols="60" rows="10" ref={input => contentInput = input}></textarea>
+						消息内容(json格式)：<br/><textarea cols="60" rows="10" ref={input => contentInput = input}></textarea><br/>
+						只发给在线用户：<input type="checkbox" ref={input => sendOnlineOnlyInput = input} />
 					</div>, () => {
 						var event = eventInput.value;
 						var users = usersInput.value;
 						var content = contentInput.value;
+						var sendOnlineOnly = sendOnlineOnlyInput.checked;
 						try{
 							var contentJson = JSON.parse(content);
 							contentJson.event = event;
@@ -38,6 +40,7 @@ const Message = commonTable({
 								type: "POST",
 								data: JSON.stringify({
 									content : JSON.stringify(contentJson),
+									sendOnlineOnly : sendOnlineOnly,
 									uids : users
 								}),
 								dataType: "json",

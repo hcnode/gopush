@@ -49,6 +49,22 @@ actually nothing special, what I was making is create one more agent layer to de
     * production : process.env.NODE_ENV === 'production'
     * develop : neither above
 
+    ```javsacript
+    {
+        "agentPort" : 6003, // port of agent server
+        "serverPortStart" : 7050, // port of socket.io server
+        "senecaPort" : 60000, // port of microservice server
+        "serverIps" : ["127.0.0.1"], // server ips
+        "serverWorkers" : 2, // instances of socket.io server
+        "agentWorkers" : 1, // instances of agent server
+        "redisAdapter" : { // redis server
+            "host" : "127.0.0.1",
+            "port": 6379
+        },
+        "mongodb" : "mongodb://localhost/push_service"
+    }
+    ```
+
 6. **hook:**
 
     include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
@@ -64,11 +80,10 @@ actually nothing special, what I was making is create one more agent layer to de
     }
     ```
 
-    * agent-middleware.js
+    * onupgrade-middleware.js
 
     ```javascript
-    var parseCookies = require('gopush/tools/parseCookies');
-    module.exports = function(req){
+    module.exports = function(req){ 
         // return Promise object and resolve uid
         return new Promise((resolve, reject) => {
             var cookies = parseCookies(req);
