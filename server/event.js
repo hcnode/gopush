@@ -1,3 +1,7 @@
+/**
+ * observe connect/disconnect event to record user online/offline info, 
+ * and handle room event defaultly
+ */
 var mongoose = require('mongoose');
 var config = require('../tools/getConfig')();
 
@@ -22,7 +26,7 @@ module.exports = function(io, service){
                 console.log('connected:' + socket.id);
             }, error => console.log(error))
         }
-        // handle room event, if event in data, then emit this event in this room
+        // handle room event, if event is defined in data, then emit this event in this room
         socket.on('room', function(data) {
             var room = data.room;
             var event = data.event;
@@ -47,6 +51,7 @@ module.exports = function(io, service){
                 }, error => console.log(error))
             }
         });
+        // emit hello event after one second when connected
         setTimeout(function(){socket.emit("connected", "hello world");}, 1000)
         
     }

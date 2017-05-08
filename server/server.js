@@ -1,4 +1,7 @@
-// Setup basic express server
+/**
+ * gopush server
+ * use socket.io as the server framework
+ */
 var express = require('express');
 var cookieParser = require('cookie-parser');
 var mongoose = require('mongoose');
@@ -6,45 +9,20 @@ var event = require('./event');
 var config = require('../tools/getConfig')();
 var app = express();
 var bodyParser = require('body-parser');
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
-app.use(cookieParser());
-// only local call allow
-// app.all('/internal/*', (req, res, next) => {
-// 	var ip = req.ip;
-// 	if(ip == '::1' || ip == '127.0.0.1' || ip == '::ffff:127.0.0.1'){
-// 		next()
-// 	}else{
-// 		res.status(403).send('forbidden');
-// 	}
-// });
-// // subscribe message by local call
-// app.post('/internal/sub', (req, res, next) => {
-// 	var userList = (req.body.uids || '').split('\n');
-// 	var messageId = req.body.messageId;
-// 	console.log(req.body)
-// 	service.subscribe(userList, messageId).then(() => res.json({code : 200}), err => res.status(500).send(err));
-// });
-// // subscribe custom message by local call
-// app.post('/internal/customSub', (req, res, next) => {
-// 	var userList = (req.body.uids || '').split('\n');
-// 	var content = req.body.content;
-// 	try{
-// 		service.customSubscribe(userList, JSON.parse(content)).then(() => res.json({code : 200}), err => res.status(500).send(err));
-// 	}catch(e){
-// 		res.stats(400).send('convert json error')
-// 	}
-// });
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var redis = require('socket.io-redis');
+// calculate server port
 var port = config.serverPortStart + (process.env.NODE_APP_INSTANCE - 0);
+port = port ? port : config.serverPortStart;
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(cookieParser());
 io.adapter(redis(config.redisAdapter));
 // io.set('transports', ['websocket']);
-server.listen(port ? port : config.serverPortStart, function () {
+server.listen(port, function () {
 	console.log('Server listening at port %d', port);
 });
-// example
 app.use(express.static(__dirname + '/public'));
 if(config.mongodb){
 	mongoose.connect(config.mongodb);
@@ -54,9 +32,11 @@ if(config.mongodb){
 		mongoose.model(collection, schema);
 	})
 }
+// service and event might use io instance to broadcast, for example
 var service = require('./service')(io);
+var eventBind = event(io);
 io.on('connection', (socket) => {
-	event(io)(socket);
+	eventBind(socket);
 	setTimeout(function(){
 		var uid = socket.handshake.query.uid;
 		if(uid){
@@ -64,7 +44,7 @@ io.on('connection', (socket) => {
 		}
 	}, 1000)
 });
-// define seneca service
+// init seneca service, each server instance bind a seneca service with increace port
 var Seneca = require('seneca');
 var seneca = new Seneca();
 var senecaPort = config.senecaPort + (process.env.NODE_APP_INSTANCE - 0);

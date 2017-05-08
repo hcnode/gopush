@@ -248,6 +248,9 @@ module.exports = function (io) {
                 });
             })
         },
+        /**
+         * check socket if online
+         */
         checkOnline : function(socketId){
             var connectedSockets = io.of('/').connected;
             if(!connectedSockets[socketId]){

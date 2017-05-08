@@ -2,14 +2,12 @@
   "name": "gopush-server",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
-  "private": true,
+  "main": "server.js",
   "dependencies": {
+
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "test": "./node_modules/mocha/bin/_mocha test/service.test.js"
-  },
-  "devDependencies": {
   }
 }

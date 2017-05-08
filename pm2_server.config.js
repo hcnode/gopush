@@ -7,22 +7,22 @@ module.exports = {
   apps : [
     // server
     {
-      name      : "socket-io-server",
-      script    : __dirname + "/server/index.js",
+      name      : "gopush-server",
+      script    : __dirname + "/server/server.js",
       instances : config.serverWorkers,
       exec_mode : "cluster"
     },
     // agent
     {
-      name      : "socket-io-agent",
+      name      : "gopush-agent",
       script    : __dirname + "/agent/bin/www",
       instances : config.agentWorkers,
       exec_mode : "cluster"
     },
     // admin
     {
-      name      : "socket-io-admin",
-      script    : __dirname + "/admin/server.js",
+      name      : "gopush-admin",
+      script    : __dirname + "/admin/admin.js",
       exec_mode : "fork"
     }
   ]

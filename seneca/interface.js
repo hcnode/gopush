@@ -1,9 +1,13 @@
+/**
+ * use seneca as microservice to do something like subscribe
+ */
 var config = require('../tools/getConfig')();
 var getHash = require('../tools/getHash');
 var getHostAndPortByHash = require('../tools/getHostAndPortByHash');
 /* istanbul ignore next */ 
 module.exports = function (service) {
 	return function(){
+		// 
 		this.add('cmd:subscribe', (msg, callback) => {
 			if(msg.messageId){
 				service.subscribe(msg.uid, msg.messageId)
