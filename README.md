@@ -1,5 +1,5 @@
 ## What is this ?
-this is a solution of socket.io base application which deploy by ![pm2](https://github.com/Unitech/pm2) with cluster mode, and to subscribe event with socket.io-redis cross different socket.io instances, and these network enviroment are all behind a layer of ngnix.
+this is a solution of socket.io base application which deploy by [pm2](https://github.com/Unitech/pm2) with cluster mode, and to subscribe event with socket.io-redis cross different socket.io instances, and these network enviroment are all behind a layer of ngnix.
 
 ## What is the problem ?
 when using socket.io with cluster mode, you will meet the sticky sesson issue.
