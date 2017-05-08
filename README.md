@@ -21,12 +21,13 @@ upstream socket_nodes {
 drawbacks: this layer of ngnix maybe behind another layer of nginx, so ip_hash is not so accurate to keep the session sticky, in addition, extra maintanences is necessary of this upstream block while some nodes need to scale or down.
 
 * socket.io wrapped with [socket-io-sticky-session](https://github.com/wzrdtales/socket-io-sticky-session) to keep the session sticky.
+
 workaround of this lib work is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by calculating header of x-forwarded-for, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
 
-drawbacks: only a master worker as the agent role, and you may probably can not scale it(I am not sure, it is?), and you may not deploy this application by pm2 with cluster mode as well.
+drawbacks: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
 
 ## How this project of solution work ?
-Actually nothing special, what I was doing is create one more agent layer to handle the requests(include http and websocket) come from clients, it is kind of like sticky-session lib, but I use multiple standalone instances as the agent role instead of use only one master worker, in addition, agent can easy to scale more instances.
+Actually nothing special, what I was doing is create one more agent layer to handle the requests(include http and websocket) come from clients, it is likely kind of like sticky-session lib, but I use multiple standalone instances as the agent role instead of use only one master worker, in addition, agent can easy to scale more instances, moreover, this can be deploy by pm2!
 
 ![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
 
@@ -43,7 +44,7 @@ Actually nothing special, what I was doing is create one more agent layer to han
 
 5. **config:**
 
-    include local, develop and production config json file in config folder, which would be use depend on the environment of your server:
+    include local, develop and production config json file in config folder, which one would be used depend on the environment of your server:
 
     * local.json : mac or windows
     * production : process.env.NODE_ENV === 'production'
@@ -67,7 +68,7 @@ Actually nothing special, what I was doing is create one more agent layer to han
 
 6. **hook:**
 
-    include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have production one(*_production.js), which apply in production environment.
+    include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have a production copy(*_production.js), which applied in production environment.
 
     * agent-middleware.js
 
@@ -107,4 +108,4 @@ Actually nothing special, what I was doing is create one more agent layer to han
 
 8. visit `http://localhost:6003` you will see `hello world` if every thing is ok.
 
-9. visit `http://localhost:6012/pushManager/admin/` to subscribe message
+9. visit `http://localhost:6012/pushManager/admin/` to subscribe message or manage message
