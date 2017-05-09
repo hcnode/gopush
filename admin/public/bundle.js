@@ -38758,7 +38758,7 @@ var Message = (0, _commonTable2.default)({
 			_react2.default.createElement(
 				'button',
 				{ className: 'btn btn-default', onClick: function onClick(event) {
-						var eventInput, usersInput, contentInput;
+						var eventInput, usersInput, contentInput, sendOnlineOnlyInput;
 						showDialog(that, _react2.default.createElement(
 							'div',
 							null,

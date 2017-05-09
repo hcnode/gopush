@@ -21,7 +21,7 @@ const Message = commonTable({
 	extendToolbar: function (that) {
 		return <div>
 			<button className="btn btn-default" onClick={event => {
-				var eventInput, usersInput, contentInput;
+				var eventInput, usersInput, contentInput, sendOnlineOnlyInput;
 				showDialog(that, <div>
 						event：<br/><input type="text" ref={input => eventInput = input} /><br/><br/>
 						用户uid列表(每行一个帐号)：<br/><textarea cols="60" rows="10" ref={input => usersInput = input}></textarea><br/><br/>
