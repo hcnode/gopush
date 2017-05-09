@@ -26,7 +26,7 @@ workaround of this lib work is firstly launch the master worker as an agent and 
 
 drawbacks: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
 
-## How this project of solution work ?
+## How this solution work ?
 Actually nothing special, what I was doing is create one more agent layer to handle the requests(include http and websocket) come from clients, it is likely kind of like sticky-session lib, but I use multiple standalone instances as the agent role instead of use only one master worker, in addition, agent can easy to scale more instances, moreover, this can be deploy by pm2!
 
 ![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
@@ -42,7 +42,7 @@ Actually nothing special, what I was doing is create one more agent layer to han
  
 4. `gopush-create` to create your own config and hooks
 
-5. **config:**
+5. **edit config:**
 
     include local, develop and production config json file in config folder, which one would be used depend on the environment of your server:
 
@@ -66,7 +66,7 @@ Actually nothing special, what I was doing is create one more agent layer to han
     }
     ```
 
-6. **hook:**
+6. **edit hooks:**
 
     include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have a production copy(*_production.js), which applied in production environment.
 
@@ -104,7 +104,7 @@ Actually nothing special, what I was doing is create one more agent layer to han
     }
     ```
 
-7. after finishing config then run `gopush`
+7. run `gopush` after finishing config 
 
 8. visit `http://localhost:6003` you will see `hello world` if every thing is ok.
 

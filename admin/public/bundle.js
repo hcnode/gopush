@@ -38780,11 +38780,17 @@ var Message = (0, _commonTable2.default)({
 							_react2.default.createElement('br', null),
 							_react2.default.createElement('textarea', { cols: '60', rows: '10', ref: function ref(input) {
 									return contentInput = input;
+								} }),
+							_react2.default.createElement('br', null),
+							'\u53EA\u53D1\u7ED9\u5728\u7EBF\u7528\u6237\uFF1A',
+							_react2.default.createElement('input', { type: 'checkbox', ref: function ref(input) {
+									return sendOnlineOnlyInput = input;
 								} })
 						), function () {
 							var event = eventInput.value;
 							var users = usersInput.value;
 							var content = contentInput.value;
+							var sendOnlineOnly = sendOnlineOnlyInput.checked;
 							try {
 								var contentJson = JSON.parse(content);
 								contentJson.event = event;
@@ -38793,6 +38799,7 @@ var Message = (0, _commonTable2.default)({
 									type: "POST",
 									data: JSON.stringify({
 										content: JSON.stringify(contentJson),
+										sendOnlineOnly: sendOnlineOnly,
 										uids: users
 									}),
 									dataType: "json",
