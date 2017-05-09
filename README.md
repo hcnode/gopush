@@ -22,7 +22,7 @@ drawbacks: this layer of ngnix maybe behind another layer of nginx, so ip_hash i
 
 * socket.io wrapped with [socket-io-sticky-session](https://github.com/wzrdtales/socket-io-sticky-session) to keep the session sticky.
 
-workaround of this lib work is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by calculating header of x-forwarded-for, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
+workaround of this lib work is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by header of x-forwarded-for, then connect to a specify worker by calculating hash of the ip, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
 
 drawbacks: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
 
