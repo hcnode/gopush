@@ -52,7 +52,7 @@ module.exports = function(io, service){
             }
         });
         // emit hello event after one second when connected
-        setTimeout(function(){socket.emit("connected", "hello world");}, 1000)
+        setTimeout(function(){socket.emit("go:push", "hello world");}, 1000)
         
     }
 } 

@@ -1,3 +1,4 @@
 module.exports = function(){
-    return require(`${process.cwd()}/config/${require('./getEnvironment')}.json`);
+    var config = require(`${process.cwd()}/config/${require('./getEnvironment')}.json`);
+    return config;
 }
