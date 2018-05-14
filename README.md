@@ -18,13 +18,13 @@ upstream socket_nodes {
     server srv4.app.com:5000;
 }
 ```
-drawbacks: this layer of ngnix maybe behind another layer of nginx, so ip_hash is not so accurate to keep the session sticky, in addition, extra maintanences is necessary of this upstream block while some nodes need to scale or down.
+cons: this layer of ngnix maybe behind another layer of nginx, so ip_hash is not so accurate to keep the session sticky, in addition, extra maintanences is necessary of this upstream block while some nodes need to scale or down.
 
 * socket.io wrapped with [socket-io-sticky-session](https://github.com/wzrdtales/socket-io-sticky-session) to keep the session sticky.
 
-workaround of this lib work is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by header of x-forwarded-for, then connect to a specify worker by calculating hash of the ip, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
+what this lib do is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by header of x-forwarded-for, then connect to a specify worker by calculating hash of the ip, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
 
-drawbacks: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
+cons: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
 
 ## How this solution work ?
 Actually nothing special, what I was doing is create one more agent layer to handle the requests(include http and websocket) come from clients, it is likely kind of like sticky-session lib, but I use multiple standalone instances as the agent role instead of use only one master worker, in addition, agent can easy to scale more instances, moreover, this can be deploy by pm2!

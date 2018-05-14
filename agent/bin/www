@@ -1,113 +1,173 @@
 #!/usr/bin/env node
 
-var app = require('../app');
-var debug = require('debug')('agent2:server');
-var http = require('http');
-var request = require('request');
-var config = require('../../tools/getConfig')();
-var fs = require('fs');
-var net = require('net');
-var url = require('url');
-var util = require('util');
-var fayeWebsocket = require('faye-websocket');
-var environment = require('../../tools/getEnvironment');
-var getHash = require('../../tools/getHash');
-var parseCookies = require('../../tools/parseCookies');
-var upgrade = require('upgrade');
+var app = require("../app");
+var debug = require("debug")("agent2:server");
+var http = require("http");
+var request = require("request");
+var config = require("../../tools/getConfig")();
+var fs = require("fs");
+var net = require("net");
+var url = require("url");
+var util = require("util");
+var fayeWebsocket = require("faye-websocket");
+var environment = require("../../tools/getEnvironment");
+var getHash = require("../../tools/getHash");
+var parseCookies = require("../../tools/parseCookies");
+var upgrade = require("upgrade");
 /**
  * Get port from environment and store in Express.
  */
 var port = normalizePort(process.env.PORT || config.agentPort);
-app.set('port', port);
+app.set("port", port);
 
 var server = http.createServer(app);
-console.log(process.cwd())
-if(fs.existsSync(`${process.cwd()}/hook/agent-middleware${environment == 'local' ? '' : '_production'}.js`)){
-	// do something to verify to get uid
-	require(`${process.cwd()}/hook/agent-middleware${environment == 'local' ? '' : '_production'}`)(app);
-}else{
-	app.use((req, res, next) => res.send('you need a hook/agent-middleware.js to save user to res.locals.uid'))
+console.log(process.cwd());
+if (fs.existsSync(`${process.cwd()}/hook/agent-middleware${environment == "local" ? "" : "_production"}.js`)) {
+  // do something to verify to get uid
+  require(`${process.cwd()}/hook/agent-middleware${environment == "local" ? "" : "_production"}`)(app);
+} else {
+  app.use((req, res, next) => res.send("you need a hook/agent-middleware.js to save user to res.locals.uid"));
 }
-app.use(function (req, res, next) {
-	var port = getPort(res.locals.uid);
-	var server = getServerIp(res.locals.uid);
-	res.cookie("agent-info", port);
-	console.log(`${req.protocol}:${server}:${port}:${req.originalUrl}:${req.get('x-forwarded-for')}:${req.get('Upgrade')}:${req.get('Connection')}`)
-	var url = `http://${server}:${port}${req.originalUrl}`;
-	if(url.indexOf('?') > -1){
-		url += `&uid=${res.locals.uid}`;
-	}else{
-		url += `?uid=${res.locals.uid}`;
-	}
-	req.pipe(request(url)).pipe(res);
+function getDest(req, res) {
+  var cookies = parseCookies(req);
+  if (cookies["dest"]) {
+    var serverAndPort = decodeURIComponent(cookies["dest"]).split(":");
+    var dests = config.dest[serverAndPort[0]];
+    if (dests[serverAndPort[1] - 0] && dests[serverAndPort[1] - 0].ports[serverAndPort[2] - 0]) {
+      return {
+        server: dests[serverAndPort[1] - 0].server,
+        port: dests[serverAndPort[1] - 0].ports[serverAndPort[2] - 0]
+      };
+    }
+  }
+  var query = req.query || getQueryParam(req);
+  var dests = config.dest[query.dest];
+  var rndServer = Math.floor(Math.random() * dests.length);
+  var dest = dests[rndServer];
+  var server = dest.server;
+  var rndPort = Math.floor(Math.random() * dest.ports.length);
+  var port = dest.ports[rndPort];
+  res && res.cookie("dest", `${query.dest}:${rndServer}:${rndPort}`);
+  return {
+    server,
+    port
+  };
+}
+app.use(function(req, res, next) {
+  var port, server;
+  var cookies = parseCookies(req);
+  if ((req.query.dest && config.dest && config.dest[req.query.dest]) || cookies.dest) {
+    var dest = getDest(req, res);
+    port = dest.port;
+    server = dest.server;
+  } else {
+    port = getPort(res.locals.uid);
+    server = getServerIp(res.locals.uid);
+  }
+  res.cookie("agent-info", port);
+  console.log(
+    `${req.protocol}:${server}:${port}:${req.originalUrl}:${req.get("x-forwarded-for")}:${req.get("Upgrade")}:${req.get(
+      "Connection"
+    )}`
+  );
+  var url = `http://${server}:${port}${req.originalUrl}`;
+  if (url.indexOf("?") > -1) {
+    url += `&uid=${res.locals.uid}`;
+  } else {
+    url += `?uid=${res.locals.uid}`;
+  }
+  req.pipe(request(url)).pipe(res);
 });
-function sendSocketError(req, socket, body){
-	var send = upgrade.getSend(socket);
-    upgrade.writeHead(req, socket);
-    send('403 error');
-} 
-server.on('upgrade', function (req, socket, body) {
-	Promise.resolve().then(() => {
-		if(fs.existsSync(`${process.cwd()}/hook/onupgrade-middleware${environment == 'local' ? '' : '_production'}.js`)){
-			return require(`${process.cwd()}/hook/onupgrade-middleware${environment == 'local' ? '' : '_production'}`)(req);
-		}else{
-			throw 'err';
-		}
-	}).then(uid => {
-		var port = getPort(uid);
-		var server = getServerIp(uid);
-		var frontend = new fayeWebsocket(req, socket, body),
-			backend = new fayeWebsocket.Client(`ws://${server}:${port}${req.url}`);
-		// console.log(req.url)
-		frontend.on('error', function (event) {
-			console.log(`frontend:error:ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
-		});
-		backend.on('error', function (event) {
-			console.log(`backend:error:ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
-		});
-		console.log(`ws://${server}:${port}:${req.url}:${req.headers['x-forwarded-for']}`)
-		frontend.pipe(backend).pipe(frontend);
-	}).catch(err => {
-		sendSocketError(req, socket, body);
-	})
-	
+function sendSocketError(req, socket, body) {
+  var send = upgrade.getSend(socket);
+  upgrade.writeHead(req, socket);
+  send("403 error");
+}
+function getQueryParam(req){
+  var url = req.url;
+  url = url.substring(url.indexOf('?') + 1);
+  var params = url.split('&');
+  return params.reduce((param, item) => {
+    return {
+      ...param,
+      [item.split('=')[0]] : item.split('=')[1]
+    }
+  }, {})
+}
+server.on("upgrade", function(req, socket, body) {
+  Promise.resolve()
+    .then(() => {
+      if (
+        fs.existsSync(`${process.cwd()}/hook/onupgrade-middleware${environment == "local" ? "" : "_production"}.js`)
+      ) {
+        return require(`${process.cwd()}/hook/onupgrade-middleware${environment == "local" ? "" : "_production"}`)(req);
+      } else {
+        throw "err";
+      }
+    })
+    .then(uid => {
+      var port, server;
+      var query = getQueryParam(req);
+      if (query.dest && config.dest && config.dest[query.dest]) {
+        var dest = getDest(req);
+        port = dest.port;
+        server = dest.server;
+      } else {
+        port = getPort(uid);
+        server = getServerIp(uid);
+      }
+      var frontend = new fayeWebsocket(req, socket, body),
+        backend = new fayeWebsocket.Client(`ws://${server}:${port}${req.url}`);
+      // console.log(req.url)
+      frontend.on("error", function(event) {
+        console.log(`frontend:error:ws://${server}:${port}:${req.url}:${req.headers["x-forwarded-for"]}`);
+      });
+      backend.on("error", function(event) {
+        console.log(`backend:error:ws://${server}:${port}:${req.url}:${req.headers["x-forwarded-for"]}`);
+      });
+      console.log(`ws://${server}:${port}:${req.url}:${req.headers["x-forwarded-for"]}`);
+      frontend.pipe(backend).pipe(frontend);
+    })
+    .catch(err => {
+      sendSocketError(req, socket, body);
+    });
 });
 
 function getPort(uid) {
-	var port = getHash(uid) % config.serverWorkers;
-	port += config.serverPortStart;
-	return port;
+  var port = getHash(uid) % config.serverWorkers;
+  port += config.serverPortStart;
+  return port;
 }
 function getServerIp(uid) {
-	var index = getHash(uid) % config.serverIps.length;
-	return config.serverIps[index];
+  var index = getHash(uid) % config.serverIps.length;
+  return config.serverIps[index];
 }
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+server.on("error", onError);
+server.on("listening", onListening);
 
 /**
  * Normalize a port into a number, string, or false.
  */
 
 function normalizePort(val) {
-	var port = parseInt(val, 10);
+  var port = parseInt(val, 10);
 
-	if (isNaN(port)) {
-		// named pipe
-		return val;
-	}
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
 
-	if (port >= 0) {
-		// port number
-		return port;
-	}
+  if (port >= 0) {
+    // port number
+    return port;
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -115,27 +175,25 @@ function normalizePort(val) {
  */
 
 function onError(error) {
-	if (error.syscall !== 'listen') {
-		throw error;
-	}
+  if (error.syscall !== "listen") {
+    throw error;
+  }
 
-	var bind = typeof port === 'string' ?
-		'Pipe ' + port :
-		'Port ' + port;
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
 
-	// handle specific listen errors with friendly messages
-	switch (error.code) {
-		case 'EACCES':
-			console.error(bind + ' requires elevated privileges');
-			process.exit(1);
-			break;
-		case 'EADDRINUSE':
-			console.error(bind + ' is already in use');
-			process.exit(1);
-			break;
-		default:
-			throw error;
-	}
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
 }
 
 /**
@@ -143,9 +201,7 @@ function onError(error) {
  */
 
 function onListening() {
-	var addr = server.address();
-	var bind = typeof addr === 'string' ?
-		'pipe ' + addr :
-		'port ' + addr.port;
-	debug('Listening on ' + bind);
+  var addr = server.address();
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  debug("Listening on " + bind);
 }
