@@ -5,6 +5,9 @@ const restify = require('express-restify-mongoose');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
+var getHookConfig = require("../tools/getHookConfig");
+
+var adminHook = getHookConfig("admin");
 
 const util2 = require('./js/util')
 const moment = require('moment');
@@ -30,11 +33,11 @@ app.use(require('skipper')());
 app.use(session({
   secret: 'this is gopush secret'
 }))
-if(fs.existsSync(`${process.cwd()}/hook/admin-middleware${environment == 'local' ? '' : '_production'}.js`)){
+if(adminHook){
 	// do something verify user
-	require(`${process.cwd()}/hook/admin-middleware${environment == 'local' ? '' : '_production'}`)(app);
+	adminHook(app);
 }else{
-	app.use((req, res, next) => res.send('you need a hook/admin-middleware.js to verify user'));
+	app.use((req, res, next) => res.send('you need a hook/admin.js to verify user'));
 }
 
 app.use('/' + util2.getPrefix(), express.static(__dirname + "/public"))

@@ -1,0 +1,5 @@
+{
+  "agentPort": 6003,
+  "serverPortStart" : 4000,
+  "agentWorkers": 1
+}
