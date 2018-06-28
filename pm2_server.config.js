@@ -15,7 +15,7 @@ module.exports = {
     // agent
     {
       name      : "gopush-agent",
-      script    : __dirname + "/agent/index",
+      script    : __dirname + "/agent/index.js",
       instances : config.agentWorkers,
       exec_mode : "cluster"
     },
