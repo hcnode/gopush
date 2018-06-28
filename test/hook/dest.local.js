@@ -19,5 +19,11 @@ module.exports = {
       ip : "127.0.0.1",
       ports : [4000]
     }
-  ]
+  ],
+  default: [
+    {
+      ip : "127.0.0.1",
+      ports : [3000]
+    }
+  ],
 };

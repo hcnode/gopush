@@ -61,6 +61,14 @@ describe("agent", function() {
     });
   });
 
+  it("#default", async function() {
+    await assertClient({
+      product: "",
+      uid: "test@gmail.com",
+      port: [3000]
+    });
+  });
+
   it("#polling 1", async function() {
     await assertClient({
       product: "test",

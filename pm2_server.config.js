@@ -20,10 +20,10 @@ module.exports = {
       exec_mode : "cluster"
     },
     // admin
-    {
-      name      : "gopush-admin",
-      script    : __dirname + "/admin/admin.js",
-      exec_mode : "fork"
-    }
+    // {
+    //   name      : "gopush-admin",
+    //   script    : __dirname + "/admin/admin.js",
+    //   exec_mode : "fork"
+    // }
   ]
 }

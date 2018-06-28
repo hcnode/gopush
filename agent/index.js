@@ -32,35 +32,15 @@ if (agentMiddleware) {
  * @param {*} req
  * @param {*} res
  */
-async function getDest(req, uid, res) {
-  var cookies = parseCookies(req);
-  // 如果有cookie，则是第一次请求保存的服务信息
-  if (cookies["dest"]) {
-    var [destName, ip, port] = decodeURIComponent(cookies["dest"]).split(":");
-    ip -= 0;
-    port -= 0;
-    var dests = dest[destName];
-    if (dests[ip] && dests[ip].ports[port]) {
-      return {
-        ip: dests[ip].ip,
-        port: dests[ip].ports[port]
-      };
-    }
-  }
+async function getDest(req, uid) {
   var query = req.query || getQueryParam(req);
-  var destInfo = destConfig[query.product];
+  var destInfo = destConfig[query.product] || destConfig.default;
   if (destInfo) {
     var ipAndPort;
     var isArray = Array.isArray(destInfo);
     if (!isArray) {
       ipAndPort = await destInfo(req, uid);
     } else {
-      // var rndServer = Math.floor(Math.random() * destInfo.length);
-      // var destServer = destInfo[rndServer];
-      // var ip = destServer.ip;
-      // var rndPort = Math.floor(Math.random() * destServer.ports.length);
-      // var port = destServer.ports[rndPort];
-
       var port = getPort(uid, destInfo);
       var ip = getServerIp(uid, destInfo);
       ipAndPort = {
@@ -77,11 +57,11 @@ async function getDest(req, uid, res) {
 app.use(async function(req, res, next) {
   var port, ip;
   var query = req.query;
-  if(!query.product){
+  if (!query.product && !destConfig.default) {
     return res.end("product not found");
   }
   // 如果存在dest参数或者cookie，则走目标代理流程，否则使用配置
-  var dest = (await getDest(req, res.locals.uid, res)) || {};
+  var dest = (await getDest(req, res.locals.uid)) || {};
   port = dest.port;
   ip = dest.ip;
   if (!ip || !port) {
@@ -113,12 +93,12 @@ server.on("upgrade", async function(req, socket, body) {
     if (!uid) {
       throw "uid not found";
     }
-    var query = getQueryParam(req)
-    if(!query.product){
-      return res.end("product not found");
+    var query = getQueryParam(req);
+    if (!query.product && !destConfig.default) {
+      throw "product not found";
     }
     var dest = (await getDest(req, uid)) || {};
-    var {port, ip} = dest;
+    var { port, ip } = dest;
     if (!ip || !port) {
       throw "service not found";
     }
