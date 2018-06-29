@@ -32,43 +32,41 @@ gopush provide agent server, which act as a route server, all requests including
 ## Usages
 (depend on pm2 and redis, mongodb is optional)
 
-1. `npm i gopush -g` 
+1. `yarn add gopush` 
 
-2. `mkdir project-name` 
-
-3. `cd project-name`
+2. create script in package.json;
  
-4. `gopush-create` to create your own config and hooks
+ ```json
+{
+    "gopush": "cd gopush && bash ../node_modules/gopush/bin/gopush",
+    "gopush-create": "bash ./node_modules/gopush/bin/gopush-create"
+}
+ ```
+
+3. `npm run gopush-create`
+ 
+4. `npm run gopush` and visit http://localhost:6003/
 
 5. **edit config:**
-
-    include local, develop and production config json file in config folder, which one would be used depend on the environment of your server:
-
-    * local.json : mac or windows
-    * production : process.env.NODE_ENV === 'production'
-    * develop : neither above
 
     ```javsacript
     {
         "agentPort" : 6003, // port of agent server
-        "serverPortStart" : 7050, // port of socket.io server
-        "senecaPort" : 60000, // port of microservice server
-        "serverIps" : ["127.0.0.1"], // server ips
-        "serverWorkers" : 2, // instances of socket.io server
-        "agentWorkers" : 1, // instances of agent server
+        "serverPortStart" : 4000, // built-in websocket server start port
+        "serverWorkers" : 2, // instances of built-in websocket server
+        "agentWorkers" : 4, // instances of agent server
         "redisAdapter" : { // redis server
             "host" : "127.0.0.1",
             "port": 6379
-        },
-        "mongodb" : "mongodb://localhost/push_service"
+        }
     }
     ```
 
 6. **edit hooks:**
 
-    include agent middleware `onupgrade-middleware.js` and `agent-middleware.js`, admin middleare `admin-middleware.js`, each of them also have a production copy(*_production.js), which applied in production environment.
+    http agent `agent.[evn].js` and websocket agent `onupgrade.[env].js` and router `router.[env].js`, which applied in production environment.
 
-    * agent-middleware.js
+    * agent.[evn].js
 
     ```javascript
     module.exports = function(app){
@@ -79,7 +77,7 @@ gopush provide agent server, which act as a route server, all requests including
     }
     ```
 
-    * onupgrade-middleware.js
+    * onupgrade.[env].js
 
     ```javascript
     module.exports = function(req){ 
@@ -91,19 +89,31 @@ gopush provide agent server, which act as a route server, all requests including
     }
     ```
 
-    * admin-middleware.js
+    * router.[env].js
 
     ```javascript
-    module.exports = function(app){
-        app.use((req, res, next) => {
-            // do something to verify the user
-            next();
-        })
-    }
+    module.exports = {
+        // test is the name of product by pass product url parameter of request:
+        // for example:
+        // var ioc = require("socket.io-client");
+        // ioc(`ws://127.0.0.1:6003?product=test`)
+        
+        // uid is defined in hooks middleware
+        // so you can pipe request to specify service by product and uid
+        test: (req, uid) => {
+            return {
+                ip: "127.0.0.1",
+                port: 4000
+            };
+        },
+        // when product is empty, request goes to default service
+        default: [
+            {
+                ip : "127.0.0.1",
+                ports : [4000, 4001]
+            }
+        ]
+    };
+
     ```
 
-7. run `gopush` after finishing config 
-
-8. visit `http://localhost:6003` you will see `hello world` if every thing is ok.
-
-9. visit `http://localhost:6012/pushManager/admin/` to subscribe message or manage message

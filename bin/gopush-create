@@ -13,7 +13,11 @@ get_script_dir () {
      echo "$DIR"
 }
 BASEDIR="$(get_script_dir)"
-cp -r $BASEDIR/../hook ./
-cp -r $BASEDIR/../config ./
-echo "create success."
-echo "run gopush and visit http://localhost:6003/"
+
+mkdir gopush
+cp -r $BASEDIR/../hook ./gopush
+cp -r $BASEDIR/../config ./gopush
+echo "create config success."
+echo "please create script in package.json:"
+echo "\"gopush\" : \"cd gopush && bash ../node_modules/gopush/bin/gopush\""
+echo "then run npm run gopush and visit http://localhost:6003/"

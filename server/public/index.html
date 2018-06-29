@@ -2,21 +2,23 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<title>Socket.IO</title>
-	<script src="/socket.io.js"></script>
+  <meta charset="UTF-8">
+  <title>Socket.IO</title>
+  <script src="/socket.io.js"></script>
 </head>
 
 <body>
 </body>
 <script>
-	document.cookie = "uid=user@gopush.demo";
-	var socket = io();
-	socket.on('connect', function () {
-		var div = document.createElement('DIV');
-		div.innerHTML = 'websocket connected';
-		document.body.appendChild(div);
-	});
+  document.cookie = "uid=user@gopush.demo";
+  var socket = io({
+    transports: ['websocket']
+  });
+  socket.on('connect', function () {
+    var div = document.createElement('DIV');
+    div.innerHTML = 'websocket connected';
+    document.body.appendChild(div);
+  });
 </script>
 
 </html>
