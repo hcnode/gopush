@@ -1,13 +1,9 @@
 {
     "agentPort" : 6003,
-    "senecaPort" : 60000,
-    "agentWorkers" : 1,
+    "serverPortStart" : 4000,
+    "agentWorkers" : 4,
     "redisAdapter" : {
         "host" : "127.0.0.1",
         "port": 6379
-    },
-    "mongodb" : "mongodb://localhost/push_service",
-    "dest": {
-      "testGame": [{ "server": "127.0.0.1", "ports": [2657] }]
     }
 }

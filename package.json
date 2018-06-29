@@ -12,7 +12,9 @@
   "main": "./server/index.js",
   "author": "hcnode@gmail.com",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test" : "cd test&&mocha --timeout 10000"
+  },
   "dependencies": {
     "body-parser": "~1.16.0",
     "bootstrap": "^3.3.7",

@@ -4,16 +4,13 @@ var debug = require("debug")("agent2:server");
 var http = require("http");
 var request = require("request");
 var config = require("../tools/getConfig")();
-var fs = require("fs");
 var fayeWebsocket = require("faye-websocket");
-var environment = require("../tools/getEnvironment");
 var getHash = require("../tools/getHash");
-var parseCookies = require("../tools/parseCookies");
 var upgrade = require("upgrade");
 var getHookConfig = require("../tools/getHookConfig");
 var upgradeMiddleware = getHookConfig("onupgrade");
 var agentMiddleware = getHookConfig("agent");
-var destConfig = getHookConfig("dest");
+var destConfig = getHookConfig("router");
 /**
  * Get port from environment and store in Express.
  */
@@ -55,15 +52,12 @@ async function getDest(req, uid) {
  * 代理http
  */
 app.use(async function(req, res, next) {
-  var port, ip;
   var query = req.query;
   if (!query.product && !destConfig.default) {
     return res.end("product not found");
   }
-  // 如果存在dest参数或者cookie，则走目标代理流程，否则使用配置
   var dest = (await getDest(req, res.locals.uid)) || {};
-  port = dest.port;
-  ip = dest.ip;
+  var { port, ip } = dest;
   if (!ip || !port) {
     return res.end("service not found");
   }

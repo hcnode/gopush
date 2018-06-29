@@ -1,8 +1,8 @@
 ## What is this ?
-this is a solution of socket.io base application which deploy by [pm2](https://github.com/Unitech/pm2) with cluster mode, and to subscribe event with socket.io-redis cross different socket.io instances, and these network enviroment are all behind a layer of ngnix.
+this is a solution for mutiple websocket base applications and easy to scale, gopush provide a agent layer which take care all the websocket and http requests from clients, all you only need to do is deploy your websocket base app behide this agent.
 
 ## What is the problem ?
-when using socket.io with cluster mode, you will meet the sticky sesson issue.
+when using socket.io with cluster mode, you probably meet the sticky sesson issue.
 
 ![without_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/issue_with_cluster_socket.io.png)
 
@@ -18,16 +18,14 @@ upstream socket_nodes {
     server srv4.app.com:5000;
 }
 ```
-cons: this layer of ngnix maybe behind another layer of nginx, so ip_hash is not so accurate to keep the session sticky, in addition, extra maintanences is necessary of this upstream block while some nodes need to scale or down.
+in some complex situation ip_hash sometimes is not as precise as we expect to keep the session sticky, in addition, you have to keep maintaining upstream block while some nodes need to scale or down.
 
 * socket.io wrapped with [socket-io-sticky-session](https://github.com/wzrdtales/socket-io-sticky-session) to keep the session sticky.
 
-what this lib do is firstly launch the master worker as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by header of x-forwarded-for, then connect to a specify worker by calculating hash of the ip, which is a way to force slave worker stick to a certain ip and eventually send message to this slave worker.
-
-cons: only a master worker as the agent role, and you may probably can not scale it(I am not sure, is it?), and you may not deploy this application by pm2 with cluster mode neither.
+how this libary work is firstly launch a master as an agent and then fork a number of slaves as backend servers, all requests go to the agent first, then get the client ip by header of x-forwarded-for, then pipe the request to a specify worker by calculating hash of the ip, which is a way to force slave worker stick to a conrresponding ip. the main problem of this approach is only one master, and you may probably can not scale it(I am not sure, is it?), and you may can not deploy this application by using pm2 with cluster mode neither.
 
 ## How this solution work ?
-Actually nothing special, what I was doing is create one more agent layer to handle the requests(include http and websocket) come from clients, it is likely kind of like sticky-session lib, but I use multiple standalone instances as the agent role instead of use only one master worker, in addition, agent can easy to scale more instances, moreover, this can be deploy by pm2!
+gopush provide agent server, which act as a route server, all requests including http and websocket go to agent server, then agent server pipe these requests to conrresponding service with "unique product and uid" identity and by implementing them in few hooks config, and gopush also offer a kind of built-in and out of box and pm2 support websocket service which you can develop some business base on "room" concept.
 
 ![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
 
