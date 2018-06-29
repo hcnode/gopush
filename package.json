@@ -1,6 +1,6 @@
 {
   "name": "gopush",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "bin": {
     "gopush": "./bin/gopush",
     "gopush-create": "./bin/gopush-create"
@@ -13,7 +13,7 @@
   "author": "hcnode@gmail.com",
   "license": "MIT",
   "scripts": {
-    "test" : "cd test&&mocha --timeout 10000"
+    "test": "cd test&&mocha --timeout 10000"
   },
   "dependencies": {
     "body-parser": "~1.16.0",
