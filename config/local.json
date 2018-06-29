@@ -2,6 +2,7 @@
     "agentPort" : 6003,
     "serverPortStart" : 4000,
     "agentWorkers" : 4,
+    "serverWorkers" : 2,
     "redisAdapter" : {
         "host" : "127.0.0.1",
         "port": 6379
