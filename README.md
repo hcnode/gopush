@@ -30,7 +30,6 @@ gopush provide agent server, which act as a route server, all requests including
 ![with_agent](https://raw.githubusercontent.com/hcnode/gopush/e4e64a0690bb6afd3da05d6a36f4d82bf5a03c08/charts/modules.png)
 
 ## Usages
-(depend on pm2 and redis, mongodb is optional)
 
 1. `yarn add gopush` 
 
