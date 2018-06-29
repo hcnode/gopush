@@ -27,7 +27,7 @@ how this libary work is firstly launch a master as an agent and then fork a numb
 ## How this solution work ?
 gopush provide agent server, which act as a route server, all requests including http and websocket go to agent server, then agent server pipe these requests to conrresponding service with "unique product and uid" identity and by implementing them in few hooks config, and gopush also offer a kind of built-in and out of box and pm2 support websocket service which you can develop some business base on "room" concept.
 
-![with_agent](https://raw.githubusercontent.com/hcnode/gopush/master/charts/modules.png)
+![with_agent](https://raw.githubusercontent.com/hcnode/gopush/e4e64a0690bb6afd3da05d6a36f4d82bf5a03c08/charts/modules.png)
 
 ## Usages
 (depend on pm2 and redis, mongodb is optional)
@@ -97,7 +97,7 @@ gopush provide agent server, which act as a route server, all requests including
         // for example:
         // var ioc = require("socket.io-client");
         // ioc(`ws://127.0.0.1:6003?product=test`)
-        
+
         // uid is defined in hooks middleware
         // so you can pipe request to specify service by product and uid
         test: (req, uid) => {
