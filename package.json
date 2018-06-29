@@ -1,6 +1,6 @@
 {
   "name": "gopush",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "bin": {
     "gopush": "./bin/gopush",
     "gopush-create": "./bin/gopush-create"
